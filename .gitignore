@@ -1,4 +1,17 @@
-releases
-node_modules
+# Releases
+releases/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+
+# Bun
+bun.lockb
+
+# OpenCode
+.opencode/
+
+# npm (not used, but just in case)
 package*.json
-.opencode
