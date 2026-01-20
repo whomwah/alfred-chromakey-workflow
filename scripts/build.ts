@@ -11,6 +11,11 @@ const PLIST_PATH = "info.plist";
 const WORKFLOW_JSON_PATH = "workflow.json";
 const SOURCE_PATH = "src/index.ts";
 const CHANGELOG_PATH = "CHANGELOG.md";
+const RELEASES_DIR = "releases";
+const ICON_PATH = "icon.png";
+
+// Files to include in the .alfredworkflow package
+const WORKFLOW_FILES = [PLIST_PATH, ICON_PATH];
 
 interface WorkflowConfig {
   name: string;
@@ -185,7 +190,47 @@ async function build(version?: string) {
   await Bun.write(PLIST_PATH, plist);
   console.log(`${step}. Written info.plist`);
 
+  // Package workflow if version is provided (release build)
+  if (version) {
+    await packageWorkflow(workflowConfig.name, version);
+  }
+
   console.log("\nBuild complete!");
+}
+
+/**
+ * Create the .alfredworkflow package (a zip file with .alfredworkflow extension)
+ * Only runs when a version is provided (release builds)
+ */
+async function packageWorkflow(name: string, version: string) {
+  const { mkdir, rm } = await import("fs/promises");
+  const { $ } = Bun;
+
+  // Sanitize name for filename (lowercase, replace spaces with hyphens)
+  const safeName = name.toLowerCase().replace(/\s+/g, "-");
+  const outputFile = `${RELEASES_DIR}/${safeName}.alfredworkflow`;
+
+  console.log(`7. Packaging workflow...`);
+
+  // Ensure releases directory exists
+  await mkdir(RELEASES_DIR, { recursive: true });
+
+  // Remove existing package if present
+  try {
+    await rm(outputFile);
+  } catch {
+    // File doesn't exist, that's fine
+  }
+
+  // Create zip archive with workflow files
+  // Using -j to junk (not record) directory names
+  await $`zip -j ${outputFile} ${WORKFLOW_FILES}`.quiet();
+
+  // Get file size for display
+  const stat = await Bun.file(outputFile).stat();
+  const sizeKb = Math.round((stat?.size ?? 0) / 1024);
+
+  console.log(`   Created ${outputFile} (${sizeKb} KB)`);
 }
 
 // Parse optional version argument from command line
