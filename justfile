@@ -46,3 +46,7 @@ uninstall:
 
 # Build and install
 setup: build install
+
+# Run tests
+test:
+    bun test

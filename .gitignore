@@ -13,8 +13,5 @@ bun.lockb
 # OpenCode
 .opencode/
 
-# npm (not used, but just in case)
-package*.json
-
 # env
 .env
