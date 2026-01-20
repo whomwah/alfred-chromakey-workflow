@@ -120,7 +120,17 @@ function replacePlistValue(
   return plist.replace(regex, `$1${value}$2`);
 }
 
-async function build() {
+/**
+ * Replace the root-level version in the plist
+ * This matches only the root-level version key (single tab indent)
+ */
+function replacePlistVersion(plist: string, version: string): string {
+  // Match root-level version: single tab, then <key>version</key>, then <string>
+  const regex = /(\t<key>version<\/key>\s*<string>)[^<]*(<\/string>)/;
+  return plist.replace(regex, `$1${version}$2`);
+}
+
+async function build(version?: string) {
   console.log("Building ChromaKey Palette workflow...\n");
 
   // 1. Transpile TypeScript to JavaScript
@@ -163,14 +173,25 @@ async function build() {
   plist = replacePlistValue(plist, "category", xmlEscape(workflowConfig.category));
   plist = replacePlistValue(plist, "readme", xmlEscape(readme));
 
-  // 5. Write updated plist
+  // Inject version if provided
+  if (version) {
+    console.log(`5. Setting version to ${version}...`);
+    plist = replacePlistVersion(plist, version);
+    console.log(`   Updated version to ${version}`);
+  }
+
+  // Write updated plist
+  const step = version ? "6" : "5";
   await Bun.write(PLIST_PATH, plist);
-  console.log("   Updated info.plist");
+  console.log(`${step}. Written info.plist`);
 
   console.log("\nBuild complete!");
 }
 
-build().catch((err) => {
+// Parse optional version argument from command line
+const version = process.argv[2];
+
+build(version).catch((err) => {
   console.error("Build error:", err);
   process.exit(1);
 });
