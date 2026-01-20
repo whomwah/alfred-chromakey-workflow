@@ -9,8 +9,9 @@ any hex color input, displayed in an interactive 3x3 grid. It creates: lighter t
 darker shade, analogous colors, muted/saturated versions, triadic shift, and complement.
 
 - **Type:** Alfred Workflow for macOS
-- **Language:** JavaScript (JXA - JavaScript for Automation)
+- **Language:** TypeScript (compiled to JavaScript for JXA)
 - **Runtime:** macOS `osascript -l JavaScript` interpreter (NOT Node.js)
+- **Build Tool:** Bun + just
 - **Bundle ID:** `com.whomwah.alfred.chromakey`
 - **Repository:** https://github.com/whomwah/alfred-chromakey-workflow
 
@@ -19,41 +20,49 @@ darker shade, analogous colors, muted/saturated versions, triadic shift, and com
 ```
 alfred-chromakey-workflow/
 ├── src/
-│   └── index.js          # Main source file (single file architecture)
-├── info.plist            # Alfred workflow configuration (XML)
-├── icon.png              # Workflow icon
-└── README.md             # Documentation
+│   ├── index.ts              # Main source (TypeScript)
+│   └── types/
+│       └── jxa.d.ts          # JXA type definitions
+├── scripts/
+│   └── build.ts              # Build script (Bun)
+├── workflow.json             # Metadata config
+├── CHANGELOG.md              # Changelog
+├── justfile                  # Build commands
+├── tsconfig.json             # TypeScript config
+├── info.plist                # Alfred workflow (modified by build)
+├── icon.png                  # Workflow icon
+├── README.md                 # Documentation
+└── AGENTS.md                 # This file
 ```
 
 ## Build/Lint/Test Commands
 
-This project has **no build system, no package manager, and no test framework**.
+### Building the Workflow
+
+```bash
+# Build (compile TS and inject into info.plist)
+just build
+
+# Type check only
+just check
+
+# Install to Alfred (creates symlink)
+just install
+
+# Full setup (build + install)
+just setup
+
+# Uninstall from Alfred
+just uninstall
+```
 
 ### Running the Workflow
 
 The code executes directly through Alfred. To test:
 
-1. Install the workflow in Alfred (symlink or import)
-2. Trigger with keyword `ck` followed by a hex color (e.g., `ck ff5500`)
+1. Run `just setup` to build and install the workflow
+2. Trigger with keyword `c` followed by a hex color (e.g., `c ff5500`)
 3. Check Alfred's debug console for errors
-
-### Manual Testing via Command Line
-
-```bash
-# Run the script directly with osascript
-osascript -l JavaScript -e 'const run = require("./src/index.js").run; run(["ff5500"])'
-
-# Or test with a simple validation
-osascript -l JavaScript ./src/index.js
-```
-
-### No Linting Configured
-
-Consider adding ESLint if the project grows. For now, follow the style guide below.
-
-### No Tests Configured
-
-All testing is manual through Alfred's script filter interface.
 
 ## External Dependencies
 
@@ -140,7 +149,7 @@ try {
 
 ```javascript
 // Main entry point - Alfred calls this function
-export function run(argv) {
+function run(argv) {
   let query = argv[0].replace("#", "").trim();
   
   // ... processing ...
@@ -179,7 +188,7 @@ This single-file project has no imports. If adding structure:
 
 ### Single-File Design
 
-The entire workflow is contained in `src/index.js`. Helper functions are defined
+The entire workflow is contained in `src/index.ts`. Helper functions are defined
 inside `run()` to keep the scope contained and avoid globals.
 
 ### Color Processing Pipeline
@@ -199,13 +208,13 @@ Each color swatch is a 128x128 PNG created by ImageMagick.
 
 ### Adding a New Color Variation
 
-1. Add entry to the `variations` array in `src/index.js:72-82`
+1. Add entry to the `variations` array in `src/index.ts:72-82`
 2. Use `hslToHex()` with adjusted H/S/L values
 3. Keep the grid-friendly naming convention
 
 ### Modifying Icon Generation
 
-Edit the shell command in `src/index.js:98-100`:
+Edit the shell command in `src/index.ts:98-100`:
 
 ```javascript
 app.doShellScript(
