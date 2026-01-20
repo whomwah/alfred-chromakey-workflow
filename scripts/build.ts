@@ -2,12 +2,10 @@
  * Build script for ChromaKey Palette Alfred Workflow
  *
  * Responsibilities:
- * 1. Bundle TypeScript source to JavaScript using Bun
+ * 1. Transpile TypeScript source to JavaScript using Bun
  * 2. Read workflow.json metadata
  * 3. Inject compiled JS and metadata into info.plist
  */
-
-import { $ } from "bun";
 
 const PLIST_PATH = "info.plist";
 const WORKFLOW_JSON_PATH = "workflow.json";
@@ -53,24 +51,15 @@ function replacePlistValue(
 async function build() {
   console.log("Building ChromaKey Palette workflow...\n");
 
-  // 1. Bundle TypeScript to JavaScript
-  console.log("1. Bundling TypeScript...");
-  const buildResult = await Bun.build({
-    entrypoints: [SOURCE_PATH],
-    target: "browser", // Closest to JXA environment
-    minify: false, // Keep readable for debugging
+  // 1. Transpile TypeScript to JavaScript
+  console.log("1. Transpiling TypeScript...");
+  const sourceCode = await Bun.file(SOURCE_PATH).text();
+  const transpiler = new Bun.Transpiler({
+    loader: "ts",
+    target: "browser",
   });
-
-  if (!buildResult.success) {
-    console.error("Build failed:");
-    for (const log of buildResult.logs) {
-      console.error(log);
-    }
-    process.exit(1);
-  }
-
-  const compiledJs = await buildResult.outputs[0].text();
-  console.log(`   Compiled ${SOURCE_PATH} (${compiledJs.length} bytes)`);
+  const compiledJs = transpiler.transformSync(sourceCode);
+  console.log(`   Transpiled ${SOURCE_PATH} (${compiledJs.length} bytes)`);
 
   // 2. Read workflow.json
   console.log("2. Reading workflow.json...");
