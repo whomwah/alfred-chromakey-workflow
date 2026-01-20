@@ -1,5 +1,7 @@
 # ChromaKey Palette
 
+[![Download Alfred Workflow](https://img.shields.io/github/v/release/whomwah/alfred-chromakey-workflow?label=Download&logo=alfred&style=flat-square)](https://github.com/whomwah/alfred-chromakey-workflow/releases/latest/download/alfred-chromakey.alfredworkflow)
+
 Your personal color theory assistant. Visualizes 9 distinct variations of any hex color in a beautiful interactive grid.
 
 An [Alfred](https://www.alfredapp.com/) workflow for macOS.
@@ -75,6 +77,21 @@ just setup
 # Uninstall from Alfred
 just uninstall
 ```
+
+### Configuration
+
+Copy `.env.example` to `.env` and adjust the values for your system:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `WORKFLOW_DIR` | Path to Alfred's workflows directory | `$HOME/alfred/sync_folder/Alfred.alfredpreferences/workflows` |
+| `LINK_NAME` | Name for the symlink in the workflows directory | `alfred-chromakey-workflow` |
+
+**Finding your workflow directory:** Open Alfred Preferences → Advanced → Set preferences folder. Your workflows are at `{preferences_folder}/workflows`.
 
 ## License
 

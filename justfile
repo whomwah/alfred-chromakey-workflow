@@ -1,3 +1,10 @@
+# Load .env file if it exists
+set dotenv-load
+
+# Environment variables with defaults
+WORKFLOW_DIR := env("WORKFLOW_DIR", "$HOME/alfred/sync_folder/Alfred.alfredpreferences/workflows")
+LINK_NAME := env("LINK_NAME", "alfred-chromakey-workflow")
+
 # Default recipe
 default:
     @just --list
@@ -13,10 +20,8 @@ check:
 # Install workflow to Alfred (symlink)
 install:
     #!/usr/bin/env bash
-    WORKFLOW_DIR="$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows"
-    LINK_NAME="alfred-chromakey-workflow"
-    TARGET="$WORKFLOW_DIR/$LINK_NAME"
-    
+    TARGET="{{WORKFLOW_DIR}}/{{LINK_NAME}}"
+
     if [ -L "$TARGET" ]; then
         echo "Symlink already exists at $TARGET"
     elif [ -e "$TARGET" ]; then
@@ -30,9 +35,8 @@ install:
 # Uninstall workflow from Alfred (remove symlink)
 uninstall:
     #!/usr/bin/env bash
-    WORKFLOW_DIR="$HOME/Library/Application Support/Alfred/Alfred.alfredpreferences/workflows"
-    TARGET="$WORKFLOW_DIR/alfred-chromakey-workflow"
-    
+    TARGET="{{WORKFLOW_DIR}}/{{LINK_NAME}}"
+
     if [ -L "$TARGET" ]; then
         rm "$TARGET"
         echo "Uninstalled: removed $TARGET"

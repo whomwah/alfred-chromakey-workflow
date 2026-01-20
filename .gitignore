@@ -15,3 +15,6 @@ bun.lockb
 
 # npm (not used, but just in case)
 package*.json
+
+# env
+.env
