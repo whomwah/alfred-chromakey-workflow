@@ -1,6 +1,6 @@
 # ChromaKey Palette
 
-[![Download Alfred Workflow](https://img.shields.io/github/v/release/whomwah/alfred-chromakey-workflow?label=Download&logo=alfred&style=flat-square)](https://github.com/whomwah/alfred-chromakey-workflow/releases/latest/download/alfred-chromakey.alfredworkflow)
+[![Download Alfred Workflow](https://img.shields.io/github/v/release/whomwah/alfred-chromakey-workflow?label=Download&logo=alfred&style=flat-square)](https://github.com/whomwah/alfred-chromakey-workflow/releases/latest)
 
 Your personal color theory assistant. Visualizes 9 distinct variations of any hex color in a beautiful interactive grid.
 
