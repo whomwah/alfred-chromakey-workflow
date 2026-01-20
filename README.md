@@ -6,6 +6,8 @@ Your personal color theory assistant. Visualizes 9 distinct variations of any he
 
 An [Alfred](https://www.alfredapp.com/) workflow for macOS.
 
+![Github Alfred 5 Workflow](./assets/screenshot.png)
+
 ## Features
 
 Enter any hex color and instantly see 9 variations in a 3x3 grid:
