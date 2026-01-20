@@ -4,6 +4,5 @@
   "description": "Your personal color theory assistant. Visualizes 9 distinct variations of any hex color in a beautiful interactive grid.",
   "createdby": "Duncan Robertson",
   "webaddress": "https://github.com/whomwah/alfred-chromakey-workflow",
-  "category": "Productivity",
-  "readme": ""
+  "category": "Productivity"
 }

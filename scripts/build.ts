@@ -10,6 +10,7 @@
 const PLIST_PATH = "info.plist";
 const WORKFLOW_JSON_PATH = "workflow.json";
 const SOURCE_PATH = "src/index.ts";
+const CHANGELOG_PATH = "CHANGELOG.md";
 
 interface WorkflowConfig {
   name: string;
@@ -18,7 +19,78 @@ interface WorkflowConfig {
   createdby: string;
   webaddress: string;
   category: string;
-  readme: string;
+}
+
+/**
+ * Parse CHANGELOG.md and extract recent entries for the readme
+ * Returns a formatted string with recent changelog content
+ */
+function parseChangelog(changelog: string): string {
+  const lines = changelog.split("\n");
+  const entries: string[] = [];
+  let currentVersion = "";
+  let inSection = false;
+  let sectionContent: string[] = [];
+  let versionsFound = 0;
+  const maxVersions = 3; // Include up to 3 recent versions
+
+  for (const line of lines) {
+    // Match version headers like "## [1.0.0]" or "## [Unreleased]"
+    const versionMatch = line.match(/^## \[([^\]]+)\]/);
+    if (versionMatch) {
+      // Save previous version's content
+      if (currentVersion && sectionContent.length > 0) {
+        entries.push(`${currentVersion}\n${sectionContent.join("\n")}`);
+        versionsFound++;
+        if (versionsFound >= maxVersions) break;
+      }
+      currentVersion = versionMatch[1];
+      sectionContent = [];
+      inSection = true;
+      continue;
+    }
+
+    // Skip the main header and preamble
+    if (line.startsWith("# ") || line.includes("Keep a Changelog")) {
+      continue;
+    }
+
+    // Collect content under a version
+    if (inSection && line.trim()) {
+      // Convert ### headers to simpler format
+      if (line.startsWith("### ")) {
+        sectionContent.push(line.replace("### ", ""));
+      } else if (line.startsWith("- ")) {
+        sectionContent.push("  " + line);
+      }
+    }
+  }
+
+  // Don't forget the last version
+  if (currentVersion && sectionContent.length > 0 && versionsFound < maxVersions) {
+    entries.push(`${currentVersion}\n${sectionContent.join("\n")}`);
+  }
+
+  return entries.join("\n\n");
+}
+
+/**
+ * Build the readme content from description and changelog
+ */
+function buildReadme(description: string, changelog: string): string {
+  const changelogContent = parseChangelog(changelog);
+  
+  const readme = `${description}
+
+Usage: Type 'c' followed by a hex color (e.g., 'c ff5500')
+
+---
+
+Recent Changes:
+
+${changelogContent}`;
+
+  return readme;
 }
 
 /**
@@ -68,8 +140,14 @@ async function build() {
   ).json();
   console.log(`   Loaded metadata for "${workflowConfig.name}"`);
 
-  // 3. Read and update info.plist
-  console.log("3. Updating info.plist...");
+  // 3. Read and parse CHANGELOG.md
+  console.log("3. Building readme from changelog...");
+  const changelog = await Bun.file(CHANGELOG_PATH).text();
+  const readme = buildReadme(workflowConfig.description, changelog);
+  console.log("   Generated readme with recent changelog entries");
+
+  // 4. Read and update info.plist
+  console.log("4. Updating info.plist...");
   let plist = await Bun.file(PLIST_PATH).text();
 
   // Inject the compiled JavaScript (XML-escaped)
@@ -83,9 +161,9 @@ async function build() {
   plist = replacePlistValue(plist, "createdby", xmlEscape(workflowConfig.createdby));
   plist = replacePlistValue(plist, "webaddress", xmlEscape(workflowConfig.webaddress));
   plist = replacePlistValue(plist, "category", xmlEscape(workflowConfig.category));
-  plist = replacePlistValue(plist, "readme", xmlEscape(workflowConfig.readme));
+  plist = replacePlistValue(plist, "readme", xmlEscape(readme));
 
-  // 4. Write updated plist
+  // 5. Write updated plist
   await Bun.write(PLIST_PATH, plist);
   console.log("   Updated info.plist");
 

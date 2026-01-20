@@ -239,7 +239,25 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string></string>
+	<string>Your personal color theory assistant. Visualizes 9 distinct variations of any hex color in a beautiful interactive grid.
+
+Usage: Type 'c' followed by a hex color (e.g., 'c ff5500')
+
+---
+
+Recent Changes:
+
+Unreleased
+Changed
+  - Migrated source code to TypeScript
+  - Added build system using Bun and just
+
+1.0.0
+Added
+  - Initial release
+  - 9 color variations: lighter, darker, analogous, muted, saturated, triadic, complement
+  - Interactive 3x3 grid display
+  - Color swatch icon generation via ImageMagick</string>
 	<key>uidata</key>
 	<dict>
 		<key>06C9C4A9-38CE-441A-8D06-E2F2D8B39B60</key>
