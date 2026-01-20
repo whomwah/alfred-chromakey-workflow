@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/whomwah/alfred-chromakey-workflow/compare/v1.2.0...v1.3.0) (2026-01-20)
+
+
+### Features
+
+* **release:** add semantic-release changelog support ([624aeb5](https://github.com/whomwah/alfred-chromakey-workflow/commit/624aeb52c494f2bc25f685907206f2c98077dd6a))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

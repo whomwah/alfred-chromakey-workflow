@@ -164,6 +164,10 @@ Usage: Type 'c' followed by a hex color (e.g., 'c ff5500')
 
 Recent Changes:
 
+1.3.0
+Features
+  - add semantic-release changelog support
+
 Unreleased
 Changed
   - Migrated source code to TypeScript
@@ -209,7 +213,7 @@ Added
 	<key>userconfigurationconfig</key>
 	<array/>
 	<key>version</key>
-	<string>1.2.0</string>
+	<string>1.3.0</string>
 	<key>webaddress</key>
 	<string>https://github.com/whomwah/alfred-chromakey-workflow</string>
 </dict>
