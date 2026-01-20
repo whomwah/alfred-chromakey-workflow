@@ -144,8 +144,14 @@ async function build(version?: string) {
   const transpiler = new Bun.Transpiler({
     loader: "ts",
     target: "browser",
+    minifyWhitespace: true,
+    minifySyntax: true,
   });
-  const compiledJs = transpiler.transformSync(sourceCode);
+  let compiledJs = transpiler.transformSync(sourceCode);
+  
+  // Strip ES module exports - JXA doesn't support them
+  compiledJs = compiledJs.replace(/\bexport\s+/g, "");
+  
   console.log(`   Transpiled ${SOURCE_PATH} (${compiledJs.length} bytes)`);
 
   // 2. Read workflow.json
