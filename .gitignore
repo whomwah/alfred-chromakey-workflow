@@ -1,0 +1,4 @@
+releases
+node_modules
+package*.json
+.opencode
