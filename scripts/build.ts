@@ -28,6 +28,7 @@ interface WorkflowConfig {
 
 /**
  * Parse CHANGELOG.md and extract recent entries for the readme
+ * Supports both Keep a Changelog format and semantic-release format
  * Returns a formatted string with recent changelog content
  */
 function parseChangelog(changelog: string): string {
@@ -40,8 +41,10 @@ function parseChangelog(changelog: string): string {
   const maxVersions = 3; // Include up to 3 recent versions
 
   for (const line of lines) {
-    // Match version headers like "## [1.0.0]" or "## [Unreleased]"
-    const versionMatch = line.match(/^## \[([^\]]+)\]/);
+    // Match version headers:
+    // - Keep a Changelog: "## [1.0.0]" or "## [Unreleased]"
+    // - semantic-release: "# [1.0.0](url) (date)" or "## [1.0.0](url) (date)"
+    const versionMatch = line.match(/^#{1,2} \[([^\]]+)\]/);
     if (versionMatch) {
       // Save previous version's content
       if (currentVersion && sectionContent.length > 0) {
@@ -55,18 +58,26 @@ function parseChangelog(changelog: string): string {
       continue;
     }
 
-    // Skip the main header and preamble
-    if (line.startsWith("# ") || line.includes("Keep a Changelog")) {
+    // Skip preamble lines
+    if (line.includes("Keep a Changelog") || line.includes("Semantic Versioning")) {
       continue;
     }
 
     // Collect content under a version
     if (inSection && line.trim()) {
-      // Convert ### headers to simpler format
+      // Convert ### headers to simpler format (e.g., "### Features" -> "Features")
       if (line.startsWith("### ")) {
         sectionContent.push(line.replace("### ", ""));
-      } else if (line.startsWith("- ")) {
-        sectionContent.push("  " + line);
+      } else if (line.startsWith("- ") || line.startsWith("* ")) {
+        // Clean up the bullet point:
+        // - Remove scope formatting: "* **scope:** description" -> "- description"
+        // - Strip commit links: "([abc123](url))" -> ""
+        let bullet = line
+          .replace(/^[*-] \*\*[^:]+:\*\* /, "- ")  // Remove **scope:** prefix
+          .replace(/^[*] /, "- ")                   // Normalize * to -
+          .replace(/ \(\[[a-f0-9]+\]\([^)]+\)\)/g, "")  // Remove ([hash](url))
+          .replace(/ \([a-f0-9]+\)/g, "");          // Remove (hash)
+        sectionContent.push("  " + bullet);
       }
     }
   }
