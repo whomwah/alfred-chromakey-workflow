@@ -1,4 +1,20 @@
-export function run(argv) {
+interface AlfredItem {
+  title: string;
+  subtitle: string;
+  arg: string;
+  icon: { path: string };
+}
+
+interface AlfredResult {
+  items: AlfredItem[];
+}
+
+interface ColorVariation {
+  name: string;
+  hex: string;
+}
+
+function run(argv: string[]): string {
   let query = argv[0].replace("#", "").trim();
 
   if (!/^([0-9A-F]{3}){1,2}$/i.test(query)) {
@@ -11,9 +27,10 @@ export function run(argv) {
       .join("");
 
   // --- Helpers ---
-  const hexToRgb = (hex) =>
-    [0, 2, 4].map((p) => parseInt(hex.substring(p, p + 2), 16));
-  const rgbToHex = (r, g, b) =>
+  const hexToRgb = (hex: string): [number, number, number] =>
+    [0, 2, 4].map((p) => parseInt(hex.substring(p, p + 2), 16)) as [number, number, number];
+
+  const rgbToHex = (r: number, g: number, b: number): string =>
     "#" +
     [r, g, b]
       .map((x) =>
@@ -25,29 +42,29 @@ export function run(argv) {
       .toUpperCase();
 
   // HSL is better for shifting Hues (Analogous/Triadic)
-  function rgbToHsl(r, g, b) {
-    ((r /= 255), (g /= 255), (b /= 255));
-    let max = Math.max(r, g, b),
-      min = Math.min(r, g, b);
-    let h,
-      s,
-      l = (max + min) / 2;
-    if (max == min) {
-      h = s = 0;
-    } else {
-      let d = max - min;
+  function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      if (max == r) h = (g - b) / d + (g < b ? 6 : 0);
-      else if (max == g) h = (b - r) / d + 2;
-      else if (max == b) h = (r - g) / d + 4;
+      if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else if (max === b) h = (r - g) / d + 4;
       h /= 6;
     }
     return [h, s, l];
   }
 
-  function hslToHex(h, s, l) {
+  function hslToHex(h: number, s: number, l: number): string {
     h = (h + 1) % 1;
-    const hue2rgb = (p, q, t) => {
+    const hue2rgb = (p: number, q: number, t: number): number => {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
       if (t < 1 / 6) return p + (q - p) * 6 * t;
@@ -69,7 +86,7 @@ export function run(argv) {
 
   // --- The 9 Grid Slots ---
   // Position 5 (index 4) is the Original
-  const variations = [
+  const variations: ColorVariation[] = [
     { name: "Lighter Tint", hex: hslToHex(h, s, l + 0.2) }, // 1
     { name: "Analogous Left", hex: hslToHex(h - 0.08, s, l) }, // 2
     { name: "Darker Shade", hex: hslToHex(h, s, l - 0.2) }, // 3
@@ -89,7 +106,7 @@ export function run(argv) {
   // Path to your magick binary - update if necessary
   const magickPath = "magick";
 
-  const items = variations.map((v, index) => {
+  const items: AlfredItem[] = variations.map((v) => {
     const rawHex = v.hex.replace("#", "");
     const iconPath = `${tmpDir}${rawHex}.png`;
 
