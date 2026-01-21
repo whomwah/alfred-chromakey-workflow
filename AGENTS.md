@@ -7,7 +7,7 @@ Alfred workflow generating 9 color variations from hex input in a 3x3 grid.
 - **Language:** TypeScript compiled to JXA (NOT Node.js)
 - **Runtime:** macOS `osascript -l JavaScript`
 - **Build:** Bun + just
-- **Dependency:** ImageMagick (`brew install imagemagick`)
+- **Dependencies:** None (uses native Cocoa APIs via ObjC bridge for PNG generation)
 
 ## Commands
 
@@ -33,7 +33,8 @@ This is JavaScript for Automation, not Node.js:
 - No `require()`/`import` - single file, no modules
 - `Application.currentApplication()` for macOS scripting
 - `app.doShellScript()` for shell commands (not `child_process`)
-- No npm packages
+- `ObjC.import("Cocoa")` for native macOS APIs (NSBitmapImageRep, NSColor, etc.)
+- No npm packages or external dependencies
 
 ## Code Style
 

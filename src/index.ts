@@ -39,9 +39,11 @@ export function normalizeHex(input: string): string | null {
  * Converts a 6-character hex string to RGB values.
  */
 export function hexToRgb(hex: string): [number, number, number] {
-  return [0, 2, 4].map((p) =>
-    parseInt(hex.substring(p, p + 2), 16)
-  ) as [number, number, number];
+  return [0, 2, 4].map((p) => parseInt(hex.substring(p, p + 2), 16)) as [
+    number,
+    number,
+    number,
+  ];
 }
 
 /**
@@ -54,7 +56,7 @@ export function rgbToHex(r: number, g: number, b: number): string {
       .map((x) =>
         Math.max(0, Math.min(255, Math.round(x)))
           .toString(16)
-          .padStart(2, "0")
+          .padStart(2, "0"),
       )
       .join("")
       .toUpperCase()
@@ -67,7 +69,7 @@ export function rgbToHex(r: number, g: number, b: number): string {
 export function rgbToHsl(
   r: number,
   g: number,
-  b: number
+  b: number,
 ): [number, number, number] {
   r /= 255;
   g /= 255;
@@ -106,7 +108,7 @@ export function hslToHex(h: number, s: number, l: number): string {
   return rgbToHex(
     hue2rgb(p, q, h + 1 / 3) * 255,
     hue2rgb(p, q, h) * 255,
-    hue2rgb(p, q, h - 1 / 3) * 255
+    hue2rgb(p, q, h - 1 / 3) * 255,
   );
 }
 
@@ -130,9 +132,56 @@ export function generateVariations(hex: string): ColorVariation[] {
   ];
 }
 
+/**
+ * Creates a solid color PNG file using macOS Cocoa framework via ObjC bridge.
+ * No external dependencies - uses built-in macOS APIs.
+ */
+function createColorIcon(hexColor: string, filePath: string): void {
+  const size = 128;
+
+  // Parse hex to RGB (0-1 range for NSColor)
+  const r = parseInt(hexColor.substring(0, 2), 16) / 255;
+  const g = parseInt(hexColor.substring(2, 4), 16) / 255;
+  const b = parseInt(hexColor.substring(4, 6), 16) / 255;
+
+  // Create bitmap at exact pixel size (avoids Retina scaling issues)
+  const bitmap =
+    $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel(
+      null, // planes (auto)
+      size, // pixelsWide
+      size, // pixelsHigh
+      8, // bitsPerSample
+      4, // samplesPerPixel (RGBA)
+      true, // hasAlpha
+      false, // isPlanar
+      $.NSCalibratedRGBColorSpace,
+      0, // bytesPerRow (auto)
+      0, // bitsPerPixel (auto)
+    );
+
+  // Create graphics context from bitmap and fill with color
+  const ctx = $.NSGraphicsContext.graphicsContextWithBitmapImageRep(bitmap);
+  $.NSGraphicsContext.setCurrentContext(ctx);
+
+  const color = $.NSColor.colorWithCalibratedRedGreenBlueAlpha(r, g, b, 1.0);
+  color.setFill;
+  $.NSRectFill($.NSMakeRect(0, 0, size, size));
+
+  ctx.flushGraphics;
+
+  // Export as PNG and write to file
+  const pngData = bitmap.representationUsingTypeProperties(
+    $.NSBitmapImageFileTypePNG,
+    $(),
+  );
+  pngData.writeToFileAtomically(filePath, true);
+}
+
 // --- JXA Entry Point ---
 
 function run(argv: string[]): string {
+  ObjC.import("Cocoa");
+
   const hex = normalizeHex(argv[0]);
 
   if (!hex) {
@@ -146,16 +195,16 @@ function run(argv: string[]): string {
   const tmpDir = "/tmp/alfred_colors/";
   app.doShellScript(`mkdir -p "${tmpDir}"`);
 
-  const magickPath = "magick";
-
   const items: AlfredItem[] = variations.map((v) => {
     const rawHex = v.hex.replace("#", "");
     const iconPath = `${tmpDir}${rawHex}.png`;
 
     try {
-      app.doShellScript(
-        `if [ ! -f "${iconPath}" ]; then ${magickPath} -size 128x128 xc:"${v.hex}" "${iconPath}"; fi`
-      );
+      // Check if file exists using NSFileManager (faster than shell)
+      const fileManager = $.NSFileManager.defaultManager;
+      if (!fileManager.fileExistsAtPath(iconPath)) {
+        createColorIcon(rawHex, iconPath);
+      }
     } catch (_e) {
       // Silently ignore errors - workflow shouldn't crash
     }

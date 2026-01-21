@@ -29,7 +29,6 @@ Enter any hex color and instantly see 9 variations in a 3x3 grid:
 
 - macOS
 - [Alfred](https://www.alfredapp.com/) with [Powerpack](https://www.alfredapp.com/powerpack/)
-- [ImageMagick](https://imagemagick.org/) (`brew install imagemagick`)
 
 ### Download
 
